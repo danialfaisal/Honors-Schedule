@@ -7,6 +7,21 @@ from datetime import timedelta, date
 from django.utils import timezone
 
 
+
+
+time = (
+    ('8:00 am - 9:00 am', '8:00 am - 9:00 am'),
+    ('9:00 am - 10:00 am', '9:00 am - 10:00 am'),
+    ('10:00 am - 11:00 am', '10:00 am - 11:00 am'),
+    ('11:00 am - 12:00 pm', '11:00 am - 12:00 pm'),
+    ('12:00 pm - 1:00 pm', '12:00 pm - 1:00 pm'),
+    ('1:00 pm - 2:00 pm', '1:00 pm - 2:00 pm'),
+    ('2:00 pm - 3:00 pm', '2:00 pm - 3:00 pm'),
+    ('3:00 pm - 4:00 pm', '3:00 pm - 4:00 pm'),
+    ('4:00 pm - 5:00 pm', '4:00 pm - 5:00 pm'),
+
+)
+
 class User(AbstractUser):
     @property
     def is_councellor(self):
@@ -41,23 +56,30 @@ class Assistant(models.Model):
 
 
 class Appointment(models.Model):
+    councellor = models.ForeignKey(Councellor, on_delete=models.CASCADE)
     student_name = models.CharField(max_length=100)
     student_email = models.EmailField(max_length=70)
     student_nuid = models.IntegerField()
     student_major = models.CharField(max_length=50)
     date = models.DateField(db_index=True)
-    time = models.TimeField()
+    time = models.CharField(max_length=50, choices=time, blank=False)
 
 
     def __str__(self):
-        return "Appointment with %s on %s at %s" % (self.student_name, self.date, self.time)
+        return "Appointment with %s on %s from %s" % (self.student_name, self.date, self.time)
 
 
 class Attendance(models.Model):
     appointment = models.OneToOneField(Appointment, on_delete=models.CASCADE, null=True)
-    councellor = models.ForeignKey(Councellor, on_delete=models.CASCADE)
     attendance = models.BooleanField(default=False)
+    notes = models.TextField(blank=True)
     hold_removed = models.BooleanField(default=False)
 
     def __str__(self):
         return "Attendance for appointment %s: %s" % (self.appointment, self.attendance)
+
+def create_attendance(sender, **kwargs):
+    if kwargs['created']:
+        attendance = Attendance.objects.create(appointment=kwargs['instance'])
+
+post_save.connect(create_attendance, sender=Appointment)

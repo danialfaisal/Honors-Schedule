@@ -40,9 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'schedule',
+    'crispy_forms',
 
 ]
 
+LOGIN_REDIRECT_URL = '/'
 
 
 MIDDLEWARE = [
